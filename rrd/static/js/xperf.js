@@ -16,7 +16,7 @@ function fn_list_endpoints()
                 // display_endpoints
                 var tbody_hosts = $("#tbody-endpoints");
                 tbody_hosts.html("");
-                for (var hidx in hosts) {
+		for (var hidx in hosts) {
                     var h = hosts[hidx];
                     var line_html = '<tr>'
                     + '<td><input type="checkbox" class="input shiftCheckbox" data-fullname="'+ h +'"></input></td>'
@@ -58,29 +58,65 @@ function fn_list_counters(){
                 // display counters
                 var tbody_items = $("#tbody-counters");
                 tbody_items.html("");
-
+		var option_tags = $("#counter-tag")
+		option_tags.html("")
+		var option_tags_box = $("#check-tag")
+		option_tags_box.html("")
+		var tag_list = []
                 for (var i in items) {
                     var c = items[i];
                     var display_counter_type = "计数器";
                     if(c[1] == "GAUGE") {
                         display_counter_type = "原始值";
                     }
-                    var line_html = '<tr>'
-                    + '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c[0]+'"></input></td>'
-                    + '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0] + '</a></td>'
-                    + '<td>'+ display_counter_type +'</td>'
-                    + '<td>'+ c[2] +'s</td>'
-                    + '</tr>'
+		    if (c[0].split("/").length > 1){
+                    	var line_html = '<tr>'
+                    	+ '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c[0]+'"></input></td>'
+                    	+ '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0].split("/")[0] + '</a></td>'
+                    	+ '<td><a>' + c[0].split("/").slice(1).join("/") + '</a></td>'
+                    	+ '<td>'+ display_counter_type +'</td>'
+                    	+ '<td>'+ c[2] +'s</td>'
+                    	+ '</tr>'
+		    	tag_list.push(c[0].split("/").slice(1).join("/"))
+		    }
+		    else{
+		   	var line_html = '<tr>'
+                        + '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c[0]+'"></input></td>'    
+                        + '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0] + '</a></td>'
+                    	+ '<td><a>' + '    ' + '</a></td>'
+                        + '<td>'+ display_counter_type +'</td>'
+                        + '<td>'+ c[2] +'s</td>'
+                        + '</tr>'
+		    }
                     tbody_items.append($(line_html));
                     tbody_items.find('.shiftCheckbox').shiftcheckbox();
                 }
-            }else{
+		
+		var tmp = []
+		for(var i=0;i<tag_list.length;i++){
+			if(tmp.indexOf(tag_list[i]) == -1 ) 
+				tmp.push(tag_list[i]);
+				
+		}
+		for (var tag in tmp){
+			var check_box =  '<tr>'
+			+'<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+tmp[tag]+'"></input></td>'
+			+'<td>'+tmp[tag]+'</td>'
+			+'</tr>'
+			option_tags_box.append($(check_box))
+			option_tags_box.find('.shiftCheckbox').shiftcheckbox();
+
+		}
+		button='<button class="btn btn-default btn-sm btn-success" onclick="filter_counter();return false;">快速过滤</button>'
+		option_tags_box.append($(button))
+	    }else{
                 alert("搜索失败：" + ret.msg);
                 return false;
             }
         }
     });
 }
+
 
 
 function filter_endpoint()
@@ -113,14 +149,18 @@ function filter_endpoint()
 
 function filter_counter()
 {
-    var filter_text = $("#counter-filter").val().toLowerCase();
     var targets = $("#tbody-counters tr");
-    if(!filter_text){
+    var tags = new Array()
+    $("#check-tag input:checked").each(function(i,o){
+    	var name=$(o).attr("data-fullkey")
+	tags.push(name)
+    })
+    if(!tags){
         targets.each(function(i, obj){
             $(obj).show();
         });
-    }else{
-        var filter_pattern = new RegExp(filter_text, "i");
+    }else{ 
+        var filter_pattern = new RegExp(tags.join("|"), "i");
         targets.each(function(i, obj){
             var checkbox = $($(obj).find("input[type='checkbox']")[0]);
             var name = checkbox.attr("data-fullkey");
