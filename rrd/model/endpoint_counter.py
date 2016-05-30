@@ -24,12 +24,13 @@ class EndpointCounter(object):
         args = endpoint_ids
         for q in qs:
             args.append("%"+q+"%")
-        args += [start, limit]
 
         sql = '''select id, endpoint_id, counter, step, type from endpoint_counter where endpoint_id in (''' +placeholder+ ''') '''
         for q in qs:
             sql += ''' and counter like %s'''
-        sql += ''' limit %s,%s'''
+        if limit:
+            sql += ''' limit %s,%s'''
+            args += [start, limit]
 
         cursor = db_conn.execute(sql, args)
         rows = cursor.fetchall()
@@ -45,8 +46,10 @@ class EndpointCounter(object):
         holders = ["%s" for x in endpoint_ids]
         placeholder = ",".join(holders)
         args = endpoint_ids + [start, limit]
-
-        cursor = db_conn.execute('''select id, endpoint_id, counter, step, type from endpoint_counter where endpoint_id in ('''+placeholder+''') limit %s, %s''', args)
+        if not limit:
+            cursor = db_conn.execute('''select id, endpoint_id, counter, step, type from endpoint_counter where endpoint_id in ('''+placeholder+''')''',endpoint_ids)
+        else:
+            cursor = db_conn.execute('''select id, endpoint_id, counter, step, type from endpoint_counter where endpoint_id in ('''+placeholder+''') limit %s, %s''', args)
         rows = cursor.fetchall()
         cursor and cursor.close()
 

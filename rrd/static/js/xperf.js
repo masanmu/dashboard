@@ -50,7 +50,7 @@ function fn_list_counters(){
         method: "POST",
         url: "/api/counters",
         dataType: "json",
-        data: {"endpoints": JSON.stringify(hosts), "q": qs, "limit": limit, "_r": Math.random()},
+        data: {"endpoints": JSON.stringify(hosts), "q": qs, "limit":limit, "_r": Math.random()},
         success:function(ret){
             $(".loading").hide();
             if(ret.ok){
@@ -72,8 +72,7 @@ function fn_list_counters(){
 		    if (c[0].split("/").length > 1){
                     	var line_html = '<tr>'
                     	+ '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c[0]+'"></input></td>'
-                    	+ '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0].split("/")[0] + '</a></td>'
-                    	+ '<td><a>' + c[0].split("/").slice(1).join("/") + '</a></td>'
+                    	+ '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0]+ '</a></td>'
                     	+ '<td>'+ display_counter_type +'</td>'
                     	+ '<td>'+ c[2] +'s</td>'
                     	+ '</tr>'
