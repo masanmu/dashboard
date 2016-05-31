@@ -74,7 +74,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 	var filter_text="id=[0-9]{1,}"
 	var filter_pattern = new RegExp(filter_text)
 	var id = filter_pattern.exec(url)[0].split("=")[1]
-    	var newurl = "http://10.10.115.198:8081/screen/add"
+    	var newurl = "http://127.0.0.1:8081/screen/add"
 	var screen_name = prompt("Group screen:")
 	var postdata = {
 		"group_id":id,
@@ -82,7 +82,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 		}
 	$http.post(newurl,postdata)
 	.success(function(data,status,header,config){
-		var screen_url = "http://10.10.115.198:8081/screen/add?pid="+data
+		var screen_url = "http://127.0.0.1:8081/screen/add?pid="+data
 		window.location.href = screen_url
 	})	
 	.error(function(){alert("failed")})
