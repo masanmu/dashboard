@@ -27,6 +27,7 @@
 <script src="{{url_for('static', filename='js/jquery.flot.selection.js')}}"></script>
 <script src="{{url_for('static', filename='js/jquery.flot.stack.js')}}"></script>
 <script src="{{url_for('static', filename='js/underscore.js')}}"></script>
+<script src="{{url_for('static', filename='js/chart.js')}}"></script>
 <script src="{{url_for('static', filename='angular-bootstrap-datetimepicker/js/datetimepicker.js')}}"></script>
 <script src="/static/js/util_ng.js?_v=0.0.3"></script>
 <script src="/static/js/multi_ng.js?_v=0.0.3"></script>
@@ -98,7 +99,9 @@
                             <div class="form-group">
                                 <button id="reset" class="btn btn-default btn-sm" ng-click="vm.reset()">重置条件</button>
                             </div>
-
+			    <div class="form-group">
+				    <button id="save_screen" class="btn btn-default btn-sm" ng-click="vm.save()">save</button>
+			    </div>
                         </form>
                     </div>
                 </div>

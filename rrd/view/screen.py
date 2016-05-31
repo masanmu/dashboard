@@ -132,9 +132,18 @@ def dash_screen_embed(sid):
 @app.route("/screen/add", methods=["GET", "POST"])
 def dash_screen_add():
     if request.method == "POST":
-        name = request.form.get("screen_name")
+        name = request.form.get("screen_name","")
+        if not name:
+            data = request.get_json()
+            name = data["screen_name"]
+            group_id = data["group_id"]
         pid = request.form.get("pid", '0')
         screen = DashboardScreen.add(pid, name)
+        try:
+            if group_id:
+                return screen.id
+        except:
+            pass
         return redirect("/screen/%s" % screen.id)
     else:
         pid = request.args.get("pid", '0')
@@ -145,6 +154,7 @@ def dash_screen_add():
 def dash_graph_add(sid):
     all_screens = DashboardScreen.gets()
     top_screens = [x for x in all_screens if x.pid == '0']
+    logging.info(all_screens,top_screens)
     children = []
     for t in top_screens:
         children.append([x for x in all_screens if x.pid == t.id])

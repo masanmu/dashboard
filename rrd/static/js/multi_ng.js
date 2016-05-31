@@ -6,7 +6,7 @@ angular.module('app', ['ui.bootstrap.datetimepicker', 'app.util'])
 })
 .controller('MultiCtrl', MultiCtrl)
 
-function MultiCtrl(FlotServ, $scope, $interval, $timeout) {
+function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
     var vm = this;
 
     // 全局的参数
@@ -39,6 +39,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout) {
     vm.checkSearch = checkSearch;
     vm.reset = reset;
     vm.show = show;
+    vm.save = save;
 
     $scope.$watch('vm.globalParam.graph_type', function(newVal, oldVal) {
         if (newVal !== oldVal) {
@@ -67,7 +68,25 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout) {
     function show() {
         active(vm.globalParam);
     }
-
+    // save保存图
+    function save() {
+	var url = window.location.href;
+	var filter_text="id=[0-9]{1,}"
+	var filter_pattern = new RegExp(filter_text)
+	var id = filter_pattern.exec(url)[0].split("=")[1]
+    	var newurl = "http://10.10.115.198:8081/screen/add"
+	var screen_name = prompt("Group screen:")
+	var postdata = {
+		"group_id":id,
+		"screen_name":screen_name
+		}
+	$http.post(newurl,postdata)
+	.success(function(data,status,header,config){
+		var screen_url = "http://10.10.115.198:8081/screen/add?pid="+data
+		window.location.href = screen_url
+	})	
+	.error(function(){alert("failed")})
+    }
     // active
     function active(param) {
         // console.log(FlotServ.getUrls());
