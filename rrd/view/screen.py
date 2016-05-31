@@ -136,15 +136,17 @@ def dash_screen_add():
         if not name:
             data = request.get_json()
             name = data["screen_name"]
-            group_id = data["group_id"]
-        pid = request.form.get("pid", '0')
-        screen = DashboardScreen.add(pid, name)
-        try:
-            if group_id:
-                return screen.id
-        except:
-            pass
-        return redirect("/screen/%s" % screen.id)
+            try:
+                group_id = data["group_id"]
+                pid = request.form.get("pid","0")
+            except:
+                pid = data["pid"]
+            screen = DashboardScreen.add(pid, name)
+            return screen.id
+        else:
+            pid = request.form.get("pid", '0')
+            screen = DashboardScreen.add(pid, name)
+            return redirect("/screen/%s" % screen.id)
     else:
         pid = request.args.get("pid", '0')
         screen = DashboardScreen.get(pid)
