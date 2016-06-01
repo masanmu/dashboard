@@ -57,4 +57,4 @@ dashboard是提供给用户，以图表的方式查看push上来的数据
 >
 counter很多查看起来很不方便，比如我们现在想看redis的监控，但是redis起了很多实例，但我们需要看一下相应实例的数据对比，我们需要去在counter list去查找，这里我将所有counter的tag给提取出来,这样我们可以先选择对比实例的tag，再去看相应的screen．
 >
-添加dashboard中所选出的图表可以保存成screen
+添加dashboard中所选出的图表可以保存成相应的screen，同时加入创建screen判断，在同一层级创建相同name的screen是会自动跳转到已经创建的screen．
