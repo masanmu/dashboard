@@ -70,15 +70,11 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
     }
     // save保存图
     function save() {
-	var url = window.location.href;
-	var filter_text="id=[0-9]{1,}"
-	var filter_pattern = new RegExp(filter_text)
-	var id = filter_pattern.exec(url)[0].split("=")[1]
-    	var newurl = "http://10.10.115.198:8081/screen/add"
+	var url = window.location.href.split("/")[0];
+	var newurl = url+"/screen/add"
 	var group_name = prompt("Group screen:")
 	var screen_name = prompt("Screen name:") 
 	var group_name_postdata = {
-		"group_id":id,
 		"screen_name":group_name
 		}
 	$http.post(newurl,group_name_postdata)
@@ -89,12 +85,77 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 		}
 		$http.post(newurl,screen_name_postdata)
 			.success(function(data,status,header,config){
-				var screen_url = "http://10.10.115.198:8081/screen/"+data
-				window.location.href = screen_url
+				var screen_url =url + "/screen/"+data
+				if (vm.globalParam.graph_type === 'h'){
+					graph_type_h(screen_url)
+				}
+				if (vm.globalParam.graph_type === 'k'){
+					graph_type_k(screen_url)
+				}
+				if ( vm.globalParam.graph_type === 'a' ){
+					graph_type_a(screen_url)
+				}
 			})
-			.error(function(data,status,header,config){alert("failed")})
+			.error(function(data,status,header,config){})
 	})	
-	.error(function(){alert("failed")})
+	.error(function(){})
+    }
+    // graph_type = h
+    function graph_type_h(screen_url){
+	var hosts = new Array()
+	for(con in vm.configs[0].config){
+		hosts[con] = vm.configs[0].config[con].label
+	}
+    	for(con in vm.configs){
+		var graph_postdata = {
+			"title":vm.configs[con].config[0].label,
+			"hosts":hosts,
+			"counters":vm.configs[con].title,
+			"graph_type":"h"
+		}
+		post_data(graph_postdata,screen_url)
+	}
+    }
+    // graph_type = k
+    function graph_type_k(screen_url){
+	var counters = new Array() 
+	var hosts = new Array()
+	for(con in vm.configs[0].config){
+		counters[con] = vm.configs[0].config[con].label
+	}
+	for(con in vm.configs){
+		var graph_postdata = {
+			"title":vm.configs[con].title,
+			"hosts":vm.configs[con].title,
+			"counters":counters,
+			"graph_type":"k",
+		}
+    		post_data(graph_postdata,screen_url)
+    	}
+    }
+    // graph_type = a
+    function graph_type_a(screen_url){
+	var counters = new Array() 
+	var hosts = new Array() 
+    	for(con in vm.configs[0].config){
+		hosts[con] = vm.configs[0].config[con].label.split(" ")[0]
+		counters[con] = vm.configs[0].config[con].label.split(" ")[1]
+	}
+	var graph_postdata = {
+		"title":" 自行指定",
+		"hosts":hosts,
+		"counters":counters,
+		"graph_type":"a",
+	}
+	post_data(graph_postdata,screen_url)
+    }
+    // post_data
+    function post_data(post_data,screen_url){
+    	$http.post(screen_url+"/graph",post_data)
+		.success(function(data,status,header,config){
+		})
+		.error(function(data,status,header,config){
+		})
     }
     // active
     function active(param) {

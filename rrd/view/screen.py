@@ -133,20 +133,20 @@ def dash_screen_embed(sid):
 def dash_screen_add():
     if request.method == "POST":
         name = request.form.get("screen_name","")
-        if not name:
+        if name:
+            pid = request.form.get("pid","0")
+            screen = DashboardScreen.check(pid,name)
+            if not screen:
+                screen = DashboardScreen.add(pid,name)
+            return redirect("/screen/%s" % screen.id)
+        else:
             data = request.get_json()
             name = data["screen_name"]
-            try:
-                group_id = data["group_id"]
-                pid = request.form.get("pid","0")
-            except:
-                pid = data["pid"]
-            screen = DashboardScreen.add(pid, name)
+            pid = data.get("pid","0")
+            screen = DashboardScreen.check(pid,name)
+            if not screen:
+                screen = DashboardScreen.add(pid,name)
             return screen.id
-        else:
-            pid = request.form.get("pid", '0')
-            screen = DashboardScreen.add(pid, name)
-            return redirect("/screen/%s" % screen.id)
     else:
         pid = request.args.get("pid", '0')
         screen = DashboardScreen.get(pid)
@@ -156,7 +156,6 @@ def dash_screen_add():
 def dash_graph_add(sid):
     all_screens = DashboardScreen.gets()
     top_screens = [x for x in all_screens if x.pid == '0']
-    logging.info(all_screens,top_screens)
     children = []
     for t in top_screens:
         children.append([x for x in all_screens if x.pid == t.id])
@@ -167,25 +166,37 @@ def dash_graph_add(sid):
     pscreen = DashboardScreen.get(screen.pid)
 
     if request.method == "POST":
-        title = request.form.get("title")
-
-        hosts = request.form.get("hosts", "").strip()
-        hosts = hosts and hosts.split("\n") or []
-        hosts = [x.strip() for x in hosts]
-
-        counters = request.form.get("counters", "").strip()
-        counters = counters and counters.split("\n") or []
-        counters = [x.strip() for x in counters]
-
         timespan = request.form.get("timespan", 3600)
-        graph_type = request.form.get("graph_type", 'h')
         method = request.form.get("method", '').upper()
         position = request.form.get("position", 0)
+        try:
+            title = request.form.get("title")
+            hosts = request.form.get("hosts", "").strip()
+            hosts = hosts and hosts.split("\n") or []
+            hosts = [x.strip() for x in hosts]
+    
+            counters = request.form.get("counters", "").strip()
+            counters = counters and counters.split("\n") or []
+            counters = [x.strip() for x in counters]
+    
+            graph_type = request.form.get("graph_type", 'h')
+            graph = DashboardGraph.add(title, hosts, counters, sid,
+                    timespan, graph_type, method, position)
+            return redirect("/screen/%s" % sid)
+        except:
+            data = request.get_json()
+            hosts = data["hosts"]
+            if not isinstance(hosts,list):
+                hosts = hosts.split(",")
+            counters = data["counters"]
+            if not isinstance(counters,list):
+                counters = counters.split(" ")
+            title = data["title"]
+            graph_type = data["graph_type"]
 
-        graph = DashboardGraph.add(title, hosts, counters, sid,
-                timespan, graph_type, method, position)
-        return redirect("/screen/%s" % sid)
-
+            graph = DashboardGraph.add(title, hosts, counters, sid,
+                    timespan, graph_type, method, position)
+            return redirect("/screen/%s" % sid)
     else:
         gid = request.args.get("gid")
         graph = gid and DashboardGraph.get(gid)

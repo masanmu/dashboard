@@ -15,9 +15,20 @@ class DashboardScreen(object):
     @classmethod
     def get(cls, id):
         cursor = db_conn.execute('''select id, pid, name, time from dashboard_screen where id=%s''', (id,))
+
         row = cursor.fetchone()
         cursor.close()
         return row and cls(*row)
+
+    @classmethod
+    def check(cls,pid,name):
+        cursor = db_conn.execute('''select id, pid, name, time from dashboard_screen where pid=%s and name=%s''',(pid,name))
+        row = cursor.fetchone()
+        cursor.close()
+        if row:
+            return cls(*row)
+        else:
+            return
 
     @classmethod
     def gets(cls, pid=None, start=0, limit=0):
