@@ -55,6 +55,7 @@ function fn_list_counters(){
             $(".loading").hide();
             if(ret.ok){
                 var items = ret.data;
+		var tags = ret.tags;
                 // display counters
                 var tbody_items = $("#tbody-counters");
                 tbody_items.html("");
@@ -62,45 +63,26 @@ function fn_list_counters(){
 		option_tags.html("")
 		var option_tags_box = $("#check-tag")
 		option_tags_box.html("")
-		var tag_list = []
                 for (var i in items) {
                     var c = items[i];
                     var display_counter_type = "计数器";
-                    if(c[1] == "GAUGE") {
+                    if(c[2] == "GAUGE") {
                         display_counter_type = "原始值";
                     }
-		    if (c[0].split("/").length > 1){
-                    	var line_html = '<tr>'
-                    	+ '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c[0]+'"></input></td>'
-                    	+ '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0]+ '</a></td>'
-                    	+ '<td>'+ display_counter_type +'</td>'
-                    	+ '<td>'+ c[2] +'s</td>'
-                    	+ '</tr>'
-		    	tag_list.push(c[0].split("/").slice(1).join("/"))
-		    }
-		    else{
-		   	var line_html = '<tr>'
-                        + '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c[0]+'"></input></td>'    
-                        + '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0] + '</a></td>'
-                    	+ '<td><a>' + '    ' + '</a></td>'
-                        + '<td>'+ display_counter_type +'</td>'
-                        + '<td>'+ c[2] +'s</td>'
-                        + '</tr>'
-		    }
+                    var line_html = '<tr>'
+                    + '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c.join("?")+'"></input></td>'
+                    + '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0]+ '</a></td>'
+                    + '<td>'+ display_counter_type +'</td>'
+                    + '<td>'+ c[2] +'s</td>'
+                    + '</tr>'
                     tbody_items.append($(line_html));
                     tbody_items.find('.shiftCheckbox').shiftcheckbox();
                 }
 		
-		var tmp = []
-		for(var i=0;i<tag_list.length;i++){
-			if(tmp.indexOf(tag_list[i]) == -1 ) 
-				tmp.push(tag_list[i]);
-				
-		}
-		for (var tag in tmp){
+		for (var tag in tags){
 			var check_box =  '<tr>'
-			+'<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+tmp[tag]+'"></input></td>'
-			+'<td>'+tmp[tag]+'</td>'
+			+'<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+tags[tag]+'"></input></td>'
+			+'<td>'+tags[tag]+'</td>'
 			+'</tr>'
 			option_tags_box.append($(check_box))
 			option_tags_box.find('.shiftCheckbox').shiftcheckbox();
@@ -186,13 +168,21 @@ function fn_show_chart(counter)
             checked_hosts.push(hostfullname);
         }
     });
+    var tags = new Array()
+    $("#check-tag input:checked").each(function(i,o){
+        var name=$(o).attr("data-fullkey")
+        tags.push(name)
+    })
     if(checked_hosts.length === 0){
         alert("先选endpoint：）");
         return false;
     }
 
     checked_items = new Array();
-    checked_items.push(counter);
+    for(var i=0;i<tags.length;i++)
+    {
+    	checked_items.push(counter+"/"+tags[i]);
+    }
     var w = window.open();
     $.ajax({
         url: "/chart",
@@ -231,7 +221,11 @@ function fn_show_all(graph_type)
     $("#tbody-counters input:checked").each(function(i, o){
         if($(o).is(":visible")){
             var key_ = $(o).attr("data-fullkey");
-            checked_items.push(key_);
+            counters = key_.split("?")
+	    for(var i=3;i<counters.length;i++)
+	    { 
+            	checked_items.push(counters[0]+"/"+counters[i]);
+	    }
         }
     });
     if (checked_items.length === 0){

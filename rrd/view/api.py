@@ -50,6 +50,7 @@ def api_get_counters():
         "ok": False,
         "msg": "",
         "data": [],
+        "tags":[],
     }
     endpoints = request.form.get("endpoints") or ""
     endpoints = endpoints and json.loads(endpoints)
@@ -71,20 +72,26 @@ def api_get_counters():
         ecs = EndpointCounter.search_in_endpoint_ids(qs, endpoint_ids, limit=limit)
     else:
         ecs = EndpointCounter.gets_by_endpoint_ids(endpoint_ids, limit=limit)
-
     if not ecs:
         ret["msg"] = "no counters in graph"
         return json.dumps(ret)
     
     counters_map = {}
+    tags = []
     for x in ecs:
-        counters_map[x.counter] = [x.counter, x.type_, x.step]
+        counter = x.counter.split("/")
+        metric = counter[0]
+        tag = "/".join(counter[1:])
+        tags.append(tag)
+        if counters_map.has_key(metric):
+            counters_map[metric] += [tag]
+        else:
+            counters_map[metric] = [metric,x.type_,x.step,tag]
     sorted_counters = sorted(counters_map.keys())
     sorted_values = [counters_map[x] for x in sorted_counters]
-
     ret['data'] = sorted_values
     ret['ok'] = True
-
+    ret['tags'] = list(set(tags))
     return json.dumps(ret)
 
 @app.route("/api/tmpgraph", methods=["POST",])
