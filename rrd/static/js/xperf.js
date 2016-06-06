@@ -71,7 +71,7 @@ function fn_list_counters(){
                     }
                     var line_html = '<tr>'
                     + '<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+c.join("?")+'"></input></td>'
-                    + '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c[0] + '\')" >' + c[0]+ '</a></td>'
+                    + '<td><a href="javascript:void(0);" onclick="fn_show_chart(\'' + c.join("?") + '\')" >' + c[0]+ '</a></td>'
                     + '<td>'+ display_counter_type +'</td>'
                     + '<td>'+ c[2] +'s</td>'
                     + '</tr>'
@@ -80,15 +80,17 @@ function fn_list_counters(){
                 }
 		
 		for (var tag in tags){
-			var check_box =  '<tr>'
-			+'<td><input type="checkbox" class="input shiftCheckbox" data-fullkey="'+tags[tag]+'"></input></td>'
-			+'<td>'+tags[tag]+'</td>'
-			+'</tr>'
+			var check_box = '<label>'
+			+'<input type="checkbox" data-fullkey="'+tags[tag]+'">'+tags[tag]+'</input>'
+			+'</label>'
+			+'<span class="cut-line">|</span>'
 			option_tags_box.append($(check_box))
 			option_tags_box.find('.shiftCheckbox').shiftcheckbox();
 
 		}
-		button='<button class="btn btn-default btn-sm btn-success" onclick="filter_counter();return false;">快速过滤</button>'
+		button='<br>'
+		+'<button class="btn btn-default btn-sm btn-success" onclick="filter_counter();return false;">快速过滤</button>'
+		+'</br>'
 		option_tags_box.append($(button))
 	    }else{
                 alert("搜索失败：" + ret.msg);
@@ -97,8 +99,6 @@ function fn_list_counters(){
         }
     });
 }
-
-
 
 function filter_endpoint()
 {
@@ -162,26 +162,25 @@ function filter_counter()
 function fn_show_chart(counter)
 {
     var checked_hosts = new Array();
+    var checked_items = new Array();
     $("#tbody-endpoints input:checked").each(function(i, o){
         if($(o).is(":visible")){
             var hostfullname = $(o).attr("data-fullname");
             checked_hosts.push(hostfullname);
         }
     });
-    var tags = new Array()
-    $("#check-tag input:checked").each(function(i,o){
-        var name=$(o).attr("data-fullkey")
-        tags.push(name)
-    })
     if(checked_hosts.length === 0){
         alert("先选endpoint：）");
         return false;
     }
-
-    checked_items = new Array();
-    for(var i=0;i<tags.length;i++)
-    {
-    	checked_items.push(counter+"/"+tags[i]);
+    counter = counter.split("?")
+    if(counter[3]){
+    	for(var i=3;i<counter.length;i++){
+	    checked_items.push(counter[0]+"/"+counter[i]);
+	}
+    }
+    else{
+    checked_items.push(counter[0])
     }
     var w = window.open();
     $.ajax({
@@ -218,16 +217,39 @@ function fn_show_all(graph_type)
     }
 
     var checked_items = new Array();
-    $("#tbody-counters input:checked").each(function(i, o){
-        if($(o).is(":visible")){
-            var key_ = $(o).attr("data-fullkey");
-            counters = key_.split("?")
-	    for(var i=3;i<counters.length;i++)
-	    { 
-            	checked_items.push(counters[0]+"/"+counters[i]);
-	    }
-        }
+    var tags = new Array();
+    $("#check-tag input:checked").each(function(i,o){
+        var name=$(o).attr("data-fullkey")
+        tags.push(name)
+    })
+    
+    if(tags.length>0){
+        $("#tbody-counters input:checked").each(function(i, o){
+        var key_ = $(o).attr("data-fullkey");
+	counters = key_.split("?")
+    	for(tag in tags){
+		var filter_text = new RegExp(tags[tag],'i')
+		if(filter_text.exec(key_) != null){
+			checked_items.push(counters[0]+"/"+tags[tag]);
+		}
+	}
+    })}
+    else{
+	$("#tbody-counters input:checked").each(function(i, o){
+        var key_ = $(o).attr("data-fullkey");
+        counters = key_.split("?")
+	if(counters[3]){
+        	for(var i=3;i<counters.length;i++)
+        	{
+        		checked_items.push(counters[0]+"/"+counters[i]);
+        	}
+	}
+	else{
+		checked_items.push(counters[0])
+	}
     });
+
+    }
     if (checked_items.length === 0){
         alert("请选择counter");
         return false;
@@ -280,6 +302,23 @@ function fn_check_all_hosts()
         });
     }
 }
+
+
+function fn_check_all_tags()
+{
+    var box = $("#check_all_tags");
+    if(box.prop("checked")){
+        $("#check-tag").find("input:checkbox").each(function(i, o){
+            $(o).prop("checked", true);
+        });
+    }else{
+        $("#check-tag").find("input:checkbox").each(function(i, o){
+            $(o).prop("checked", false);
+        });
+    }
+}
+
+
 
 function fn_filter_group()
 {
