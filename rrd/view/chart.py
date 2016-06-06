@@ -1,4 +1,5 @@
 #-*- coding:utf-8 -*-
+import logging
 import os
 import time
 import datetime
@@ -74,7 +75,6 @@ def chart():
     endpoints = request.form.getlist("endpoints[]") or []
     counters = request.form.getlist("counters[]") or []
     graph_type = request.form.get("graph_type") or GRAPH_TYPE_HOST
-
     id_ = TmpGraph.add(endpoints, counters)
 
     ret = {
@@ -119,21 +119,20 @@ def multi_endpoints_chart_data():
     if not endpoints:
         abort(400, "no endpoints of %s" %(g.id,))
     endpoints = sorted(set(endpoints))
-
     ret = {
         "units": "",
         "title": "",
         "series": []
+    
     }
+    endpoint_counters = []
     ret['title'] = counters[0]
     c = counters[0]
-    endpoint_counters = []
     for e in endpoints:
         endpoint_counters.append({
             "endpoint": e,
             "counter": c,
-        })
-
+    })
     query_result = graph_query(endpoint_counters, g.cf, g.start, g.end)
 
     series = []
@@ -180,7 +179,6 @@ def multi_endpoints_chart_data():
         ret['series'] = [sum_serie,]
     else:
         ret['series'] = series
-
     return json.dumps(ret)
 
 @app.route("/chart/k", methods=["GET"])
@@ -348,6 +346,7 @@ def multi_chart_data():
 
 @app.route("/charts", methods=["GET"])
 def charts():
+    logging.info(g.id)
     if not g.id:
         abort(400, "no graph id given")
 

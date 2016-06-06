@@ -128,5 +128,4 @@ function BigCtrl(FlotServ, $scope, $interval, $timeout, $filter) {
         vm.config = data2;
     }
 
-
 }
