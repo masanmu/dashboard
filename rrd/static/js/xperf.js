@@ -137,9 +137,9 @@ function filter_counter()
 	tags.push(name)
     })
     if(!tags){
-        targets.each(function(i, obj){
-            $(obj).show();
-        });
+    	targets.each(function(i,obj){
+		$(obj).show();
+	});
     }else{ 
         var filter_pattern = new RegExp(tags.join("|"), "i");
         targets.each(function(i, obj){
@@ -173,14 +173,31 @@ function fn_show_chart(counter)
         alert("先选endpoint：）");
         return false;
     }
-    counter = counter.split("?")
-    if(counter[3]){
-    	for(var i=3;i<counter.length;i++){
-	    checked_items.push(counter[0]+"/"+counter[i]);
-	}
-    }
+
+    var tags = new Array();
+    $("#check-tag input:checked").each(function(i,o){
+        var name=$(o).attr("data-fullkey")
+        tags.push(name)
+    })
+
+    counters = counter.split("?")
+    if(tags.length>0){
+        for(tag in tags){
+                var filter_text = new RegExp(tags[tag],'i')
+                if(filter_text.exec(counter) != null){
+                        checked_items.push(counters[0]+"/"+tags[tag]);
+                }
+        }
+}
     else{
-    checked_items.push(counter[0])
+   	 if(counters[3]){
+   	 	for(var i=3;i<counters.length;i++){
+   	         checked_items.push(counters[0]+"/"+counters[i]);
+   	     }
+   	 }
+   	 else{
+   	 checked_items.push(counters[0])
+   	 }
     }
     var w = window.open();
     $.ajax({
@@ -190,7 +207,12 @@ function fn_show_chart(counter)
         data: {"endpoints": checked_hosts, "counters": checked_items, "graph_type": "h", "_r": Math.random()},
         success: function(ret) {
             if (ret.ok) {
-                setTimeout(function(){w.location='/chart/big?id='+ret.id;}, 0);
+		if(counter[4]){
+                setTimeout(function(){w.location="/charts?id="+ret.id+"&graph_type=h";}, 0);
+		}
+		else{
+		setTimeout(function(){w.location='/chart/big?id='+ret.id;}, 0);
+		}
             } else {
                 alert("请求出错了");
             }

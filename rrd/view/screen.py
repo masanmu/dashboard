@@ -190,7 +190,7 @@ def dash_graph_add(sid):
                 hosts = hosts.split(",")
             counters = data["counters"]
             if not isinstance(counters,list):
-                counters = counters.split(" ")
+                counters = [counters]
             title = data["title"]
             graph_type = data["graph_type"]
 

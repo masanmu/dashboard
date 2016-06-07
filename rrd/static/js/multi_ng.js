@@ -138,8 +138,9 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 	var counters = new Array() 
 	var hosts = new Array() 
     	for(con in vm.configs[0].config){
-		hosts[con] = vm.configs[0].config[con].label.split(" ")[0]
-		counters[con] = vm.configs[0].config[con].label.split(" ")[1]
+		counter = vm.configs[0].config[con].label.split(" ")
+		hosts[con] = counter[0]
+		counters[con] = counter.slice(1).join(" ")
 	}
 	var graph_postdata = {
 		"title":" 自行指定",
