@@ -24,6 +24,11 @@
     line-height: 16px;
     border-bottom: 1px solid #e2e2e2;
 }
+
+.cut-line {
+    margin: 0 10px;
+    color: #D6D6D6;
+}
 .box .bar {
     font-size: 14px;
     line-height: 14px;

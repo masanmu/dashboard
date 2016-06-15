@@ -18,6 +18,7 @@
             });
             $("#check_all_endpoints").bind("click", fn_check_all_hosts);
             $("#check_all_counters").bind("click", fn_check_all_items);
+            $("#check_all_tags").bind("click", fn_check_all_tags);
             $("#endpoint-search").keydown(function(event){
                 if(event.keyCode == 13){
                     fn_list_endpoints();
@@ -44,8 +45,7 @@
             $("#service-search").select2({
                 minimumInputLength: 3
             });
-
-        })
+	})
 
 </script>
 {% endblock %}
@@ -164,18 +164,13 @@
                                         <option value="100"> Limit 100</option>
                                         <option value="500">Limit 500</option>
                                         <option value="1000">Limit 1000</option>
-                                        <option value="0">Limit all</option>
+                                        <option value="0">Limit All</option>
                                     </select>
                                 </div>
-				<div class="dropdown form-group pull-right">
-                                    <a class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" href="#"> 看图 <span class="caret"></span></a>
-                                    <ul class="dropdown-menu" role="menu">
-                                      <li><a href="#" class="btn btn-link btn-xs" onclick="fn_show_all('h');return false;">Endpoint视角</a></li>
-                                      <li><a href="#" class="btn btn-link btn-xs" onclick="fn_show_all('k');return false;">Counter视角</a></li>
-                                      <li><a href="#" class="btn btn-link btn-xs" onclick="fn_show_all('a');return false;">组合视角</a></li>
-                                    </ul>
-                                </div>
-
+				<div class="form-group">
+					<input id="counter-filter" type="text" class="form-control input-sm">
+					<button class="btn btn-default btn-sm btn-info" onclick="filter_counter();return false;">过滤Tag</button>
+				</div>
                             </form>
 
                         </div>
@@ -183,22 +178,19 @@
 			<table class="table table-striped">
 				<thead> <tr>
 				<div class="panel-heading">
-                            		<img class="loading pull-right" src="/static/img/loading.gif" style="display:none;"></img>
-                            		Tag List
+                            		<img class="loading pull-right" src="/static/img/loading.gif" style="display:none;"><input type="checkbox" id="check_all_tags">   Tag List</img>
 				</div>
 
 				</tr></thead>
 				<tbody id="check-tag"> </tbody>
 			</table>
-                        <table class="table table-striped sortable">
+                        <table class="table table-striped">
                             <thead> <tr>
                                 <th width="30px"><input type="checkbox" id="check_all_counters"></th>
-                                <th >Counters</th>
-                                <th width="60px">TAG</th>
+                                <th >Metrics</th>
                                 <th width="60px">类型</th>
                                 <th width="60px">频率</th>
                             </tr></thead>
-
                             <tbody id="tbody-counters"> </tbody>
                         </table>
                     </div>

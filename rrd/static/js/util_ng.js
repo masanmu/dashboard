@@ -49,15 +49,15 @@ function myFlot(FlotServ) {
         } else if (type === 'b') {
             el = $element.find('.chart-container-big');
         }
-        el.html('<span class="loading">载入中</span>');
+	el.html('<span class="loading">载入中</span>');
         var legendContainer = $element.find('.legend');
-        var data;
+	var data;
         var dataBak;
         $scope.$watch('config', function(val) {
             if (val && val.length) {
                 // 这里的 数据需要排序, 貌似angular把这里的顺序弄乱了
                 data = FlotServ.sortData(val);
-                dataBak = angular.copy(data);
+		dataBak = angular.copy(data);
                 // console.log('1', JSON.stringify(data));
                 // 如果这里面有sum的话, 设置 stack 为true
                 // laiwei:暂时不用stack
@@ -275,7 +275,7 @@ function FlotServ($http, $window, $q) {
 
     // 首次请求的参数
     self.getParam = function() {
-        return $window.obj;
+    	    return $window.obj;
     };
 
     // 后续请求的参数, 定时的那个

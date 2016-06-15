@@ -45,6 +45,9 @@ function fn_list_counters(){
     }
 
     var limit = $("#counter-limit").val();
+    if(qs){
+   	limit = 0 
+    }
     $(".loading").show();
     $.ajax({
         method: "POST",
@@ -81,15 +84,27 @@ function fn_list_counters(){
 		
 		for (var tag in tags){
 			var check_box = '<label>'
-			+'<input type="checkbox" data-fullkey="'+tags[tag]+'">'+tags[tag]+'</input>'
-			+'</label>'
+			+'<div class="panel-heading">'
+			+'<input type="checkbox" data-fullkey="'+tags[tag]+'">'+" "+tags[tag]+'</input>'
 			+'<span class="cut-line">|</span>'
+			+'</div>'
+			+'</label>'
 			option_tags_box.append($(check_box))
 			option_tags_box.find('.shiftCheckbox').shiftcheckbox();
 
 		}
 		button='<br>'
+		+'<div class="panel-heading form-group">'
 		+'<button class="btn btn-default btn-sm btn-success" onclick="filter_counter();return false;">快速过滤</button>'
+		+'<div class="dropdown form-group pull-right">'
+		+'<a class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" href="#"> 看图 <span class="caret"></span></a>'
+		+'<ul class="dropdown-menu" role="menu">'
+		+'<li><a href="#" class="btn btn-link btn-xs" onclick="fn_show_all(\'h\');return false;">Endpoint视角</a></li>'
+		+'<li><a href="#" class="btn btn-link btn-xs" onclick="fn_show_all(\'k\');return false;">Counter视角</a></li>'
+		+'<li><a href="#" class="btn btn-link btn-xs" onclick="fn_show_all(\'a\');return false;">组合视角</a></li>'
+		+'</ul>'
+		+'</div>'
+		+'</div>'
 		+'</br>'
 		option_tags_box.append($(button))
 	    }else{
@@ -130,36 +145,43 @@ function filter_endpoint()
 
 function filter_counter()
 {
-    var targets = $("#tbody-counters tr");
+    var filter_text = $("#counter-filter").val().toLowerCase();
     var tags = new Array()
     $("#check-tag input:checked").each(function(i,o){
-    	var name=$(o).attr("data-fullkey")
-	tags.push(name)
+	var name=$(o).attr("data-fullkey")
+        tags.push(name)
     })
-    if(!tags){
-    	targets.each(function(i,obj){
-		$(obj).show();
-	});
-    }else{ 
-        var filter_pattern = new RegExp(tags.join("|"), "i");
-        targets.each(function(i, obj){
-            var checkbox = $($(obj).find("input[type='checkbox']")[0]);
-            var name = checkbox.attr("data-fullkey");
-            if(filter_pattern.exec(name) == null){
-                $(obj).hide();
-            }else{
-                $(obj).show();
-            }
-            if($(obj).is(":visible")){
-                checkbox.prop("checked", true);
-            }else{
-                checkbox.prop("checked", false);
-            }
-        });
+    if(filter_text){
+    	var targets = $("#check-tag label")
+	var filter_pattern = new RegExp(filter_text,"i");
+	$("#counter-filter").val("")
     }
+    else{
+	var targets = $("#tbody-counters tr")
+	if(!tags){
+		targets.each(function(i,obj){
+		$(obj).show();
+	})
+	}
+        var filter_pattern = new RegExp(tags.join("|"),"i")
+    }
+    targets.each(function(i,obj){
+    	var checkbox = $($(obj).find("input[type='checkbox']")[0]);
+	var name = checkbox.attr("data-fullkey");
+	if(filter_pattern.exec(name) == null){
+	    $(obj).hide();
+	}else{
+	    $(obj).show();
+	}
+	if($(obj).is(":visible")){
+		checkbox.prop("checked",true);
+	}else{
+		checkbox.prop("checked",false);
+	}
+    });
 };
 
-function fn_show_chart(counter)
+function fn_show_chart(counters)
 {
     var checked_hosts = new Array();
     var checked_items = new Array();
@@ -180,24 +202,28 @@ function fn_show_chart(counter)
         tags.push(name)
     })
 
-    counters = counter.split("?")
+    counter = counters.split("?")
     if(tags.length>0){
         for(tag in tags){
                 var filter_text = new RegExp(tags[tag],'i')
-                if(filter_text.exec(counter) != null){
-                        checked_items.push(counters[0]+"/"+tags[tag]);
+                if(filter_text.exec(counters) != null){
+                        checked_items.push(counter[0]+"/"+tags[tag]);
                 }
         }
-}
+    }
     else{
-   	 if(counters[3]){
-   	 	for(var i=3;i<counters.length;i++){
-   	         checked_items.push(counters[0]+"/"+counters[i]);
+   	 if(counter[3]){
+   	 	for(var i=3;i<counter.length;i++){
+   	         checked_items.push(counter[0]+"/"+counter[i]);
    	     }
    	 }
    	 else{
-   	 checked_items.push(counters[0])
+   	 	checked_items.push(counter[0])
    	 }
+    }
+    if(checked_items==0){
+    	alert("所选metric无对应tag")
+	return false
     }
     var w = window.open();
     $.ajax({
@@ -207,12 +233,7 @@ function fn_show_chart(counter)
         data: {"endpoints": checked_hosts, "counters": checked_items, "graph_type": "h", "_r": Math.random()},
         success: function(ret) {
             if (ret.ok) {
-		if(counter[4]){
                 setTimeout(function(){w.location="/charts?id="+ret.id+"&graph_type=h";}, 0);
-		}
-		else{
-		setTimeout(function(){w.location='/chart/big?id='+ret.id;}, 0);
-		}
             } else {
                 alert("请求出错了");
             }
