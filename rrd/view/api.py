@@ -92,7 +92,6 @@ def api_get_counters():
     ret['data'] = sorted_values
     ret['ok'] = True
     ret['tags'] = filter(None,list(set(tags)))
-    print ret
     return json.dumps(ret)
 
 @app.route("/api/tmpgraph", methods=["POST",])
