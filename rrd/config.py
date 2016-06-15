@@ -2,17 +2,17 @@
 import os
 
 #-- dashboard db config --
-DASHBOARD_DB_HOST = "10.100.11.33"
+DASHBOARD_DB_HOST = "127.0.0.1"
 DASHBOARD_DB_PORT = 3306
-DASHBOARD_DB_USER = "1verge"
-DASHBOARD_DB_PASSWD = "8bio8cwa"
+DASHBOARD_DB_USER = ""
+DASHBOARD_DB_PASSWD = ""
 DASHBOARD_DB_NAME = "dashboard"
 
 #-- graph db config --
-GRAPH_DB_HOST = "10.100.11.33"
+GRAPH_DB_HOST = "127.0.0.1"
 GRAPH_DB_PORT = 3306
-GRAPH_DB_USER = "1verge"
-GRAPH_DB_PASSWD = "8bio8cwa"
+GRAPH_DB_USER = ""
+GRAPH_DB_PASSWD = ""
 GRAPH_DB_NAME = "graph"
 
 #-- app config --
