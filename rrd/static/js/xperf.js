@@ -1,49 +1,32 @@
 function fn_list_endpoints()
 {
     var qs = $.trim($("input[name='endpoint_search']").val());
-    var tags = $.trim($("input[name='tag_search']").val());
-    var limit = $("#endpoint-limit").val();
-
-    $(".loading").show();
-    $.getJSON("/api/endpoints", {q: qs, tags: tags, limit:limit, _r:Math.random()}, function(ret){
-                $(".loading").hide();
-                if (!ret.ok) {
-                    alert(ret.msg);
-                    return;
-                }
-                var hosts = ret.data;
-
-                // display_endpoints
-                var tbody_hosts = $("#tbody-endpoints");
-                tbody_hosts.html("");
-		for (var hidx in hosts) {
-                    var h = hosts[hidx];
-                    var line_html = '<tr>'
-                    + '<td><input type="checkbox" class="input shiftCheckbox" data-fullname="'+ h +'"></input></td>'
-                    + '<td>' + h + '</td>'
-                    + '</tr>';
-                    tbody_hosts.append($(line_html));
-                    tbody_hosts.find('.shiftCheckbox').shiftcheckbox();
-                }
-                fn_check_all_hosts();
-    }).error(function(req, ret, errorThrown){
-        $(".loading").hide();
-        alert(req.statusText)
-    })
+    var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
+    if(qs.length<1){
+    	treeobj.expandAll(false);
+	return false
+    }
+    treeobj.expandAll(false);
+    treeobj.refresh();
+    var nodes = treeobj.getNodesByParamFuzzy("name",qs,null);
+    for(var i=0;i<nodes.length;i++){
+    	var res = treeobj.expandNode(nodes[i], true, false);
+    }
 }
 
 function fn_list_counters(){
     var qs = $.trim($("#counter-search").val());
     var hosts = new Array();
-    $("#tbody-endpoints input:checked").each(function(i, o){
-        var name = $(o).attr("data-fullname");
-        hosts.push(name);
-    });
-    if (hosts.length === 0){
-        alert("先选定一些endpoints");
-        return false;
+    var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
+    var nodes = treeobj.getCheckedNodes(true);
+    for(var i=0;i<nodes.length;i++){
+    	if(nodes[i].id>99999999){
+		hosts.push(nodes[i].name)
+	}
     }
-
+    if(hosts.length === 0){
+    	return false
+    }
     var limit = $("#counter-limit").val();
     if(qs){
    	limit = 0 
@@ -185,15 +168,17 @@ function fn_show_chart(counters)
 {
     var checked_hosts = new Array();
     var checked_items = new Array();
-    $("#tbody-endpoints input:checked").each(function(i, o){
-        if($(o).is(":visible")){
-            var hostfullname = $(o).attr("data-fullname");
-            checked_hosts.push(hostfullname);
+
+    var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
+    var nodes = treeobj.getCheckedNodes(true);
+    for(var i=0;i<nodes.length;i++){
+        if(nodes[i].id>99999999){
+                checked_hosts.push(nodes[i].name)
         }
-    });
+    }
     if(checked_hosts.length === 0){
-        alert("先选endpoint：）");
-        return false;
+	alert("先选endpoints");
+	return false;
     }
 
     var tags = new Array();
@@ -248,14 +233,15 @@ function fn_show_chart(counters)
 function fn_show_all(graph_type)
 {
     var checked_hosts = new Array();
-    $("#tbody-endpoints input:checked").each(function(i, o){
-        if($(o).is(":visible")){
-            var hostfullname = $(o).attr("data-fullname");
-            checked_hosts.push(hostfullname);
+    var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
+    var nodes = treeobj.getCheckedNodes(true);
+    for(var i=0;i<nodes.length;i++){
+        if(nodes[i].id>99999999){
+                checked_hosts.push(nodes[i].name)
         }
-    });
+    }
     if(checked_hosts.length === 0){
-        alert("先选endpoint：）");
+        alert("先选endpoints");
         return false;
     }
 

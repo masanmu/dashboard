@@ -5,6 +5,7 @@ from rrd import app
 
 from rrd.model.tag_endpoint import TagEndpoint
 from rrd.model.endpoint import Endpoint
+from rrd.model.ztree import Ztree
 from rrd.model.endpoint_counter import EndpointCounter
 from rrd.model.graph import TmpGraph
 
@@ -35,7 +36,6 @@ def api_endpoints():
         endpoints = Endpoint.gets(endpoint_ids)
     else:
         endpoints = Endpoint.search(q.split(), limit=limit)
-
     endpoints_str = [x.endpoint for x in endpoints]
     endpoints_str.sort()
     ret['data'] = endpoints_str
@@ -43,6 +43,35 @@ def api_endpoints():
 
     return json.dumps(ret)
 
+@app.route("/api/ztree",methods=["POST","GET"])
+def api_ztree():
+    ret = {
+        "ok":False,
+        "msg":"",
+        "dara":[],
+    }
+    if request.method == "POST":
+    	pid = request.form.get("id")
+	ztree = Ztree.get_name_by_id(pid)
+	grp = list()
+	for x in ztree:
+		grp.append(x.name)
+        filter = [(".").join(grp)]
+        hosts = Endpoint.search(filter,limit=1000000)
+        data = []
+        id = int(pid + "100000")
+        for x in hosts:
+            data.append({"id":id,"pid":pid,"name":x.endpoint,"isparent":"true"})
+            id += 1
+        return json.dumps(data)
+    ztrees = Ztree.gets()
+    ztrees_str = []
+    for x in ztrees:
+        ztree_one = [x.id,x.pid,x.name,x.isparent]
+        ztrees_str.append(ztree_one)
+    ret['data'] = ztrees_str
+    ret['ok'] = True
+    return json.dumps(ret)
 
 @app.route("/api/counters", methods=["POST"])
 def api_get_counters():

@@ -18,10 +18,10 @@ class Endpoint(object):
             args.append("%"+q+"%")
         args += [start, limit]
 
-        sql = '''select id, endpoint, ts from endpoint where ts > %s '''
+        sql = '''select id, endpoint, ts from endpoint where ts > %s'''
         for q in qs:
             sql += ''' and endpoint like %s'''
-        sql += ''' limit %s,%s'''
+        sql += ''' order by endpoint limit %s,%s'''
 
         cursor = db_conn.execute(sql, args)
         rows = cursor.fetchall()
