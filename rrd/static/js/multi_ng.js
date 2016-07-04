@@ -13,6 +13,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
     vm.defaultGlobalParam = {
         start: '',
         end: '',
+	time_range:'-3600',
         cf: 'AVERAGE', // MIN, MAX
         graph_type: 'h', // h Endpoint视角; k Counter视角
         sum: 'off' // off
@@ -57,7 +58,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
         }
     });
 
-    active(vm.globalParam);
+    active(vm.globalParam,0);
 
     // reset 重置
     function reset() {
@@ -65,8 +66,8 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
     }
 
     // show 看图
-    function show() {
-        active(vm.globalParam);
+    function show(flag) {
+        active(vm.globalParam,flag);
     }
     // save保存图
     function save() {
@@ -159,15 +160,21 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 		})
     }
     // active
-    function active(param) {
+    function active(param,flag) {
         // console.log(FlotServ.getUrls());
         var p = angular.copy(param);
-        if (angular.isDate(p.start)) {
-            p.start = +p.start/1000;
-        }
-        if (angular.isDate(p.end)) {
-            p.end = +p.end/1000;
-        }
+	var now = new Date();
+	if(flag){
+		p.start = parseInt(+now/1000) + parseInt(p.time_range);
+		p.end = parseInt(+now/1000);
+	}else{
+        	if (angular.isDate(p.start)) {
+        	    p.start = +p.start/1000;
+        	}
+        	if (angular.isDate(p.end)) {
+        	    p.end = +p.end/1000;
+        	}
+	}
         FlotServ.getMultiDataById(p).then(function(ret) {
             // [{data: {}}, {data: {}}, {data: {}}]
             // console.log(ret);
@@ -182,7 +189,6 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
             vm.configs = data;
         });
     }
-
     // 全选
     function checkAll() {
         if (vm.all) {

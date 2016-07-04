@@ -61,7 +61,7 @@ def api_ztree():
         data = []
         id = int(pid + "100000")
         for x in hosts:
-            data.append({"id":id,"pid":pid,"name":x.endpoint,"isparent":"true"})
+            data.append({"id":str(id),"pid":pid,"name":x.endpoint,"isparent":"true"})
             id += 1
         return json.dumps(data)
     ztrees = Ztree.gets()
@@ -106,7 +106,7 @@ def api_get_counters():
         return json.dumps(ret)
     
     counters_map = {}
-    tags = []
+    tags = ["none"]
     for x in ecs:
         counter = x.counter.split("/")
         metric = counter[0]

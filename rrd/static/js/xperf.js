@@ -3,9 +3,11 @@ function fn_list_endpoints()
     var qs = $.trim($("input[name='endpoint_search']").val());
     var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
     if(qs.length<1){
+	treeobj.checkAllNodes(false)
     	treeobj.expandAll(false);
 	return false
     }
+    treeobj.checkAllNodes(false)
     treeobj.expandAll(false);
     treeobj.refresh();
     var nodes = treeobj.getNodesByParamFuzzy("name",qs,null);
@@ -20,7 +22,7 @@ function fn_list_counters(){
     var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
     var nodes = treeobj.getCheckedNodes(true);
     for(var i=0;i<nodes.length;i++){
-    	if(nodes[i].id>99999999){
+    	if(nodes[i].id.length>8){
 		hosts.push(nodes[i].name)
 	}
     }
@@ -45,14 +47,12 @@ function fn_list_counters(){
                 // display counters
                 var tbody_items = $("#tbody-counters");
                 tbody_items.html("");
-		var option_tags = $("#counter-tag")
-		option_tags.html("")
 		var option_tags_box = $("#check-tag")
 		option_tags_box.html("")
                 for (var i in items) {
                     var c = items[i];
                     var display_counter_type = "计数器";
-                    if(c[2] == "GAUGE") {
+                    if(c[1] == "GAUGE") {
                         display_counter_type = "原始值";
                     }
                     var line_html = '<tr>'
@@ -128,7 +128,7 @@ function filter_endpoint()
 
 function filter_counter()
 {
-    var filter_text = $("#counter-filter").val().toLowerCase();
+    var filter_text = $("#tags-filter").val().toLowerCase();
     var tags = new Array()
     $("#check-tag input:checked").each(function(i,o){
 	var name=$(o).attr("data-fullkey")
@@ -137,7 +137,7 @@ function filter_counter()
     if(filter_text){
     	var targets = $("#check-tag label")
 	var filter_pattern = new RegExp(filter_text,"i");
-	$("#counter-filter").val("")
+	$("#tags-filter").val("")
     }
     else{
 	var targets = $("#tbody-counters tr")
@@ -152,7 +152,11 @@ function filter_counter()
     	var checkbox = $($(obj).find("input[type='checkbox']")[0]);
 	var name = checkbox.attr("data-fullkey");
 	if(filter_pattern.exec(name) == null){
-	    $(obj).hide();
+	    if((tags.indexOf('none')>=0) && (name.split("?")[3].length == 0)){
+	    	$(obj).show();
+	    }else{
+	    	$(obj).hide();
+	    }
 	}else{
 	    $(obj).show();
 	}
@@ -172,7 +176,7 @@ function fn_show_chart(counters)
     var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
     var nodes = treeobj.getCheckedNodes(true);
     for(var i=0;i<nodes.length;i++){
-        if(nodes[i].id>99999999){
+        if(nodes[i].id.length>8){
                 checked_hosts.push(nodes[i].name)
         }
     }
@@ -190,6 +194,9 @@ function fn_show_chart(counters)
     counter = counters.split("?")
     if(tags.length>0){
         for(tag in tags){
+		if(tags[tag]=='none' && counter[3].length == 0){
+			checked_items.push(counter[0])
+		}
                 var filter_text = new RegExp(tags[tag],'i')
                 if(filter_text.exec(counters) != null){
                         checked_items.push(counter[0]+"/"+tags[tag]);
@@ -236,7 +243,7 @@ function fn_show_all(graph_type)
     var treeobj = $.fn.zTree.getZTreeObj("treeDemo");
     var nodes = treeobj.getCheckedNodes(true);
     for(var i=0;i<nodes.length;i++){
-        if(nodes[i].id>99999999){
+        if(nodes[i].id.length>8){
                 checked_hosts.push(nodes[i].name)
         }
     }
@@ -257,6 +264,9 @@ function fn_show_all(graph_type)
         var key_ = $(o).attr("data-fullkey");
 	counters = key_.split("?")
     	for(tag in tags){
+		if(tags[tag]=='none' && counters[3].length == 0){
+			checked_items.push(counters[0])
+		}
 		var filter_text = new RegExp(tags[tag],'i')
 		if(filter_text.exec(key_) != null){
 			checked_items.push(counters[0]+"/"+tags[tag]);

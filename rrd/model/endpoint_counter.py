@@ -31,7 +31,6 @@ class EndpointCounter(object):
         if limit:
             sql += ''' limit %s,%s'''
             args += [start, limit]
-
         cursor = db_conn.execute(sql, args)
         rows = cursor.fetchall()
         cursor and cursor.close()
