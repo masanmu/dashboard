@@ -247,7 +247,8 @@ function FlotServ($http, $window, $q) {
                 }
             },
             grid: {
-                hoverable: true,
+		show:true,
+		hoverable: true,
                 clickable: true,
                 borderWidth: 0.5,
                 borderColor: "#EAEAEA"
@@ -292,10 +293,16 @@ function FlotServ($http, $window, $q) {
     self.getIds = function() {
         return $window.ids;
     };
-
-    self.getMultiDataById = function(param) {
-        var ids = self.getIds();
-        var reqs = _.map(ids, function(id) {
+    // 懒加载限制，防止太多请求
+    self.getMaxLoadGraph = function() {
+    	return $window.max_load_graph;
+    }
+    self.getAllGraph = function() {
+    	return $window.all_graph;
+    }
+    self.getMultiDataById = function(param,chart_ids) {
+	var ids = chart_ids
+	var reqs = _.map(ids, function(id) {
             var p = angular.copy(param);
             if (angular.isDate(p.start_s)) {
                 p.start_s = +p.start_s/1000;

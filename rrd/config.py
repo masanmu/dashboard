@@ -29,6 +29,6 @@ BASE_DIR = "/home/work/open-falcon/dashboard/"
 LOG_PATH = os.path.join(BASE_DIR,"log/")
 
 try:
-    from rrd.local_config import *
+        from rrd.local_config import *
 except:
-    pass
+        pass

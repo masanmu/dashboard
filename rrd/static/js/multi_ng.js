@@ -41,6 +41,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
     vm.reset = reset;
     vm.show = show;
     vm.save = save;
+    vm.pageScroll = pageScroll;
 
     $scope.$watch('vm.globalParam.graph_type', function(newVal, oldVal) {
         if (newVal !== oldVal) {
@@ -57,17 +58,43 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
             window.location.href = newUrl;
         }
     });
-
-    active(vm.globalParam,0);
-
+    var cur = 0 //加载图片id在数组中的索引
+    //根据配置文件中设置的最大加载图片，超过设置会启用懒加载
+    var $loadMoreBtn = $("#load-more")
+//    var loadmore = 0
+    var clock
+    var loadmore_index = 0
+    var chart_ids = new Array()
+    var chart_urls = new Array()
+    $("#time_range").attr("disabled","disabled")
+    lazyload(0)	
+    disable(true)
+    function disable(onoff){
+    	$("#time_range").attr("disabled",onoff)
+	$("#go").attr("disabled",onoff)
+	$("#reset").attr("disabled",onoff)
+	$("#save_screen").attr("disabled",onoff)
+    }
     // reset 重置
     function reset() {
-        vm.globalParam = angular.copy(vm.defaultGlobalParam);
+    	vm.globalParam.start=''
+        vm.globalParam.end=''
+        vm.globalParam.cf='AVERAGE'
+        vm.globalParam.sum='of'
+        vm.globalParam.time_range='-3600'
+    	show(0)
     }
 
     // show 看图
     function show(flag) {
-        active(vm.globalParam,flag);
+	if(clock){
+		return;
+	}
+	disable("true")
+	vm.configs = []
+//	loadmore = 1
+	loadmore_index = 0
+	lazyload(flag)
     }
     // save保存图
     function save() {
@@ -101,6 +128,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 	})	
 	.error(function(){})
     }
+
     // graph_type = h
     function graph_type_h(screen_url){
 	var hosts = new Array()
@@ -117,6 +145,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 		post_data(graph_postdata,screen_url)
 	}
     }
+
     // graph_type = k
     function graph_type_k(screen_url){
 	var counters = new Array() 
@@ -134,6 +163,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
     		post_data(graph_postdata,screen_url)
     	}
     }
+
     // graph_type = a
     function graph_type_a(screen_url){
 	var counters = new Array() 
@@ -151,6 +181,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 	}
 	post_data(graph_postdata,screen_url)
     }
+
     // post_data
     function post_data(post_data,screen_url){
     	$http.post(screen_url+"/graph",post_data)
@@ -159,6 +190,35 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
 		.error(function(data,status,header,config){
 		})
     }
+
+    function lazyload(flag){
+//	if(loadmore){
+		cur = 0;
+//	}
+    	clock = setInterval(function(){
+    	    index = {
+    	            "index":cur
+    	    }
+	    if(vm.configs.length == FlotServ.getAllGraph()){
+//	    if(cur>FlotServ.getAllGraph()){
+	    	clearInterval(clock);
+		clock = 0;
+		disable(false);
+		return;
+	    }	
+	    cur += FlotServ.getMaxLoadGraph()
+	    url = window.location.href.replace(/charts/,"api/charts")
+    	    $http.get(url,{params:index})
+    	            .success(function(data,status,header,config){
+    	                    chart_ids = data.chart_ids
+    	                    chart_urls = data.chart_urls
+    	                    active(vm.globalParam,flag)
+    	            })
+    	            .error(function(status){
+       	         })
+    	},300)
+    }
+
     // active
     function active(param,flag) {
         // console.log(FlotServ.getUrls());
@@ -175,7 +235,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
         	    p.end = +p.end/1000;
         	}
 	}
-        FlotServ.getMultiDataById(p).then(function(ret) {
+	FlotServ.getMultiDataById(p,chart_ids).then(function(ret) {
             // [{data: {}}, {data: {}}, {data: {}}]
             // console.log(ret);
             var data;
@@ -185,10 +245,19 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
                 o.title = i.data.title;
                 return o;
             });
-            // console.log(data);
-            vm.configs = data;
-        });
+//	    if(loadmore){
+//		index = loadmore_index*FlotServ.getMaxLoadGraph()
+//		for(i in data){
+//			vm.configs[index] = data[i]
+//			index += 1
+//		}
+//		loadmore_index+=1
+//	    }else{
+	    	vm.configs.push.apply(vm.configs,data)
+//	    }
+  	});
     }
+
     // 全选
     function checkAll() {
         if (vm.all) {
@@ -228,5 +297,7 @@ function MultiCtrl(FlotServ, $scope, $interval, $timeout,$http) {
         // flot = $.plot(el, val, FlotServ.getConfig());
     }
 
-
+    function pageScroll() { 
+	$(window).scrollTop(0)
+    }
 }

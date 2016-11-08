@@ -106,14 +106,21 @@ def api_get_counters():
         return json.dumps(ret)
     
     counters_map = {}
-    tags = ["none"]
+    tags = ["notag"]
     for x in ecs:
-        counter = x.counter.split("/")
-        metric = counter[0]
-        tag = "/".join(counter[1:])
-        tags.append(tag)
-        if counters_map.has_key(metric):
-            counters_map[metric] += [tag]
+        if x.counter.find("=") > 0:
+                end = x.counter.rfind("/", 0,x.counter.find("="))
+                metric = x.counter[0:end]
+                tag = x.counter[end+1:]
+                tags.append(tag)
+        else:
+                tag = ""
+                tags.append(tag)
+                metric = x.counter
+ 
+    	if counters_map.has_key(metric):
+    	    if tag not in counters_map[metric]:
+		counters_map[metric] += [tag]
         else:
             counters_map[metric] = [metric,x.type_,x.step,tag]
     sorted_counters = sorted(counters_map.keys())

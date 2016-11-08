@@ -152,7 +152,7 @@ function filter_counter()
     	var checkbox = $($(obj).find("input[type='checkbox']")[0]);
 	var name = checkbox.attr("data-fullkey");
 	if(filter_pattern.exec(name) == null){
-	    if((tags.indexOf('none')>=0) && (name.split("?")[3].length == 0)){
+	    if((tags.indexOf('notag')>=0) && (name.split("?")[3].length == 0)){
 	    	$(obj).show();
 	    }else{
 	    	$(obj).hide();
@@ -194,7 +194,7 @@ function fn_show_chart(counters)
     counter = counters.split("?")
     if(tags.length>0){
         for(tag in tags){
-		if(tags[tag]=='none' && counter[3].length == 0){
+		if(tags[tag]=='notag' && counter[3].length == 0){
 			checked_items.push(counter[0])
 		}
                 var filter_text = new RegExp(tags[tag],'i')
@@ -205,7 +205,7 @@ function fn_show_chart(counters)
     }
     else{
    	 if(counter[3]){
-   	 	for(var i=3;i<counter.length;i++){
+   	     for(var i=3;i<counter.length;i++){
    	         checked_items.push(counter[0]+"/"+counter[i]);
    	     }
    	 }
@@ -264,7 +264,7 @@ function fn_show_all(graph_type)
         var key_ = $(o).attr("data-fullkey");
 	counters = key_.split("?")
     	for(tag in tags){
-		if(tags[tag]=='none' && counters[3].length == 0){
+		if(tags[tag]=='notag' && counters[3].length == 0){
 			checked_items.push(counters[0])
 		}
 		var filter_text = new RegExp(tags[tag],'i')
@@ -356,7 +356,6 @@ function fn_check_all_tags()
         });
     }
 }
-
 
 
 function fn_filter_group()

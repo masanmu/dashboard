@@ -18,6 +18,8 @@
     {% autoescape off %}
     var urls = {{chart_urls}};
     var ids = {{chart_ids}};
+    var max_load_graph = {{max_load_graph}}
+    var all_graph = {{all_graph}}
     {% endautoescape %}
 
 </script>
@@ -54,7 +56,7 @@
                                     <datetimepicker data-ng-model="vm.globalParam.start" data-datetimepicker-config="{ dropdownSelector: '#dropdown1' }"/>
                                 </ul>
                             </div>
-
+				
                             <div class="form-group">
                                 <label class="control-label">结束</label>
                                 <a class="dropdown-toggle form-control input-sm date-area" id="dropdown2" role="button" data-toggle="dropdown" href="javascript:;">
@@ -66,6 +68,18 @@
                                 <ul class="dropdown-menu menu2" role="menu" aria-labelledby="dLabel2">
                                     <datetimepicker data-ng-model="vm.globalParam.end" data-datetimepicker-config="{ dropdownSelector: '#dropdown2' }"/>
                                 </ul>
+                            </div>
+                           <div class="form-group">
+                                <label class="control-label">时间段</label>
+                                <select class="form-control input-sm" name="time_range" id="time_range" ng-model="vm.globalParam.time_range" ng-change="vm.show(1)">
+                                        <option value="-3600">1h</option>
+                                        <option value="-10800">3h</option>
+                                        <option value="-21600">6h</option>
+                                        <option value="-43200">12h</option>
+                                        <option value="-86400">1d</option>
+                                        <option value="-259200">3d</option>
+                                        <option value="-604800">7d</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label class="control-label">采样方法</label>
@@ -100,19 +114,6 @@
 			    <div class="form-group">
 				    <button id="save_screen" class="btn btn-default btn-sm" ng-click="vm.save()">保存图表</button>
 			    </div>
-                            <div class="form-group">
-                                <label class="control-label">时间段</label>
-                                <select class="form-control input-sm" name="time_range" ng-model="vm.globalParam.time_range" ng-click="vm.show(1)">
-                                        <option value="-3600">1h</option>
-                                        <option value="-10800">3h</option>
-                                        <option value="-21600">6h</option>
-                                        <option value="-43200">12h</option>
-                                        <option value="-86400">1d</option>
-                                        <option value="-259200">3d</option>
-                                        <option value="-604800">7d</option>
-                                </select>
-                            </div>
-
                         </form>
                     </div>
                 </div>
@@ -136,6 +137,9 @@
                         </div>
                     </div>
                 </div>
+		<div class="container-fluid multi-chart">
+		    <button class="glyphicon glyphicon-open btn btn-default btn-sm pull-right" id="load-more" aria-hidden="true" ng-click="vm.pageScroll()"></button>
+		</div>
             </div>
         </div>
     </div>

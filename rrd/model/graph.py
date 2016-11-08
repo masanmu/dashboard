@@ -59,6 +59,7 @@ class DashboardGraph(object):
                 values(%s, %s, %s, %s, %s, %s, %s, %s)''',
                 (title, ENDPOINT_DELIMITER.join(hosts) or "", ENDPOINT_DELIMITER.join(counters) or "", screen_id,
                     timespan, graph_type, method, position))
+        print title,hosts,counters,screen_id
         id_ = cursor.lastrowid
         db_conn.execute('''update dashboard_graph set position=%s where id=%s''', (id_, id_))
         db_conn.commit()
@@ -147,7 +148,7 @@ class TmpGraph(object):
 
 
     @classmethod
-    def add(cls, endpoints, counters):
+    def add(cls, endpoints,counters):
         es = endpoints and ENDPOINT_DELIMITER.join(sorted(endpoints)) or ""
         cs = counters and COUNTER_DELIMITER.join(sorted(counters)) or ""
         ck = hashlib.md5("%s:%s" %(es.encode("utf8"), cs.encode("utf8"))).hexdigest()

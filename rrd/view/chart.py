@@ -9,11 +9,11 @@ import random
 import urllib
 import json
 import random
+
 from flask import request, g, abort, render_template
 from MySQLdb import ProgrammingError
-
 from rrd import app
-from rrd.consts import RRD_CFS, GRAPH_TYPE_KEY, GRAPH_TYPE_HOST
+from rrd.consts import RRD_CFS, GRAPH_TYPE_KEY, GRAPH_TYPE_HOST, CHART_MAX_LOAD_GRAPH
 from rrd.model.graph import TmpGraph
 from rrd.utils.rrdgraph import merge_list
 from rrd.utils.rrdgraph import graph_query
@@ -66,7 +66,6 @@ def chart_before():
         g.end = g.end - 60
 
         g.id = request.args.get("id") or ""
-
         g.limit = int(request.args.get("limit") or 0)
         g.page = int(request.args.get("page") or 0)
 
@@ -76,7 +75,6 @@ def chart():
     counters = request.form.getlist("counters[]") or []
     graph_type = request.form.get("graph_type") or GRAPH_TYPE_HOST
     id_ = TmpGraph.add(endpoints, counters)
-
     ret = {
             "ok": False,
             "id": id_,
@@ -344,9 +342,72 @@ def multi_chart_data():
 
     return json.dumps(ret)
 
+
+@app.route("/api/charts",methods=["GET"])
+def api_charts():
+    ret = {
+	"ok":True,
+	"msg":"",
+	"chart_ids":[],
+	"chart_urls":[]
+    }
+    p = {
+        "id": "",
+        "legend": g.legend,
+        "cf": g.cf,
+        "sum": g.sum,
+        "graph_type": g.graph_type,
+        "nav_header": g.nav_header,
+        "start": g.start,
+        "end": g.end,
+    } 
+    if not g.id:
+        abort(400, "no graph id given")
+
+    tmp_graph = TmpGraph.get(g.id)
+    if not tmp_graph:
+        abort(400,"no graph which id is %s" % g.id)
+    counters = tmp_graph.counters
+    if not counters:
+        abort(400, "no counters of %s" %g.id)
+    counters = sorted(set(counters))
+        
+    endpoints = tmp_graph.endpoints
+    if not endpoints:
+        abort(400, "no endpoints of %s" %g.id)
+    endpoints = sorted(set(endpoints))
+
+    index = request.args.get("index",0)
+     
+    cur = int(index)
+    chart_ids = []
+    chart_urls = []
+    max_load_graph = int(CHART_MAX_LOAD_GRAPH)
+    if g.graph_type == GRAPH_TYPE_KEY:
+        for x in endpoints[cur:cur+max_load_graph]:
+            id_ = TmpGraph.add([x],counters)
+            if not id_:
+                continue
+            p["id"] = id_
+            chart_ids.append(int(id_))
+            src = "/chart/k?" + urllib.urlencode(p)
+            chart_urls.append(src)
+    if g.graph_type == GRAPH_TYPE_HOST:
+        for x in counters[cur:cur+max_load_graph]:
+            id_ = TmpGraph.add(endpoints, [x])
+            if not id_:
+                continue
+            p["id"] = id_
+            chart_ids.append(int(id_))
+            src = "/chart/h?" + urllib.urlencode(p)
+            chart_urls.append(src)
+    
+    ret['chart_ids'] = chart_ids
+    ret['chart_urls'] = chart_urls
+    return json.dumps(ret)	
+
 @app.route("/charts", methods=["GET"])
 def charts():
-    logging.info(g.id)
     if not g.id:
         abort(400, "no graph id given")
 
@@ -376,20 +437,20 @@ def charts():
         "start": g.start,
         "end": g.end,
     }
-
+    max_load_graph = int(CHART_MAX_LOAD_GRAPH)
     if g.graph_type == GRAPH_TYPE_KEY:
-
-        for x in endpoints:
+        all_graph = len(endpoints)
+        for x in endpoints[0:max_load_graph]:
             id_ = TmpGraph.add([x], counters)
             if not id_:
                 continue
-
             p["id"] = id_
             chart_ids.append(int(id_))
-            src = "/chart/h?" + urllib.urlencode(p)
+            src = "/chart/k?" + urllib.urlencode(p)
             chart_urls.append(src)
     elif g.graph_type == GRAPH_TYPE_HOST:
-        for x in counters:
+        all_graph = len(counters)
+        for x in counters[0:max_load_graph]:
             id_ = TmpGraph.add(endpoints, [x])
             if not id_:
                 continue
@@ -404,6 +465,4 @@ def charts():
             chart_ids.append(int(id_))
             src = "/chart/a?" + urllib.urlencode(p)
             chart_urls.append(src)
-
     return render_template("chart/multi_ng.html", **locals())
-
